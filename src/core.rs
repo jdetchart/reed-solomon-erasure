@@ -479,7 +479,7 @@ impl<F: Field> ReedSolomon<F> {
 
         let total_shards = data_shards + parity_shards;
 
-        let matrix = Matrix::vandermonde(data_shards, total_shards);
+        let matrix = Matrix::vandermonde(total_shards, data_shards );
 
         Ok(ReedSolomon {
             data_shard_count: data_shards,

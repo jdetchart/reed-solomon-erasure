@@ -466,25 +466,24 @@ impl<F: Field> ReedSolomon<F> {
         })
     }
 
-    pub fn vandermonde(data_shards: usize, parity_shards: usize) -> Result<ReedSolomon<F>, Error> {
-        if data_shards == 0 {
+    pub fn vandermonde(k: usize, n: usize) -> Result<ReedSolomon<F>, Error> {
+        if k == 0 {
             return Err(Error::TooFewDataShards);
         }
-        if parity_shards == 0 {
+        if (n - k) == 0 {
             return Err(Error::TooFewParityShards);
         }
-        if data_shards + parity_shards > F::ORDER {
+        if n > F::ORDER {
             return Err(Error::TooManyShards);
         }
 
-        let total_shards = data_shards + parity_shards;
 
-        let matrix = Matrix::vandermonde(total_shards, data_shards );
+        let matrix = Matrix::vandermonde(n, k );
 
         Ok(ReedSolomon {
-            data_shard_count: data_shards,
-            parity_shard_count: parity_shards,
-            total_shard_count: total_shards,
+            data_shard_count: k,
+            parity_shard_count: n - k,
+            total_shard_count: n,
             matrix,
             data_decode_matrix_cache: Mutex::new(LruCache::new(DATA_DECODE_MATRIX_CACHE_CAPACITY)),
         })

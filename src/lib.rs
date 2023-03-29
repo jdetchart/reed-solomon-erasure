@@ -44,6 +44,7 @@ pub use crate::errors::SBSError;
 
 pub use crate::core::ReedSolomon;
 pub use crate::core::ShardByShard;
+pub use crate::core::ReedSolomonNonSystematic;
 
 // TODO: Can be simplified once https://github.com/rust-lang/rfcs/issues/2505 is resolved
 #[cfg(not(feature = "std"))]

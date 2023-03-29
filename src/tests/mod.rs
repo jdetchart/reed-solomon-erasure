@@ -7,12 +7,14 @@ use alloc::vec::Vec;
 
 use super::{galois_8, Error, SBSError};
 use rand::{self, thread_rng, Rng};
+use crate::ReedSolomonNonSystematic;
 
 mod galois_16;
 mod galois_prime;
 
 type ReedSolomon = crate::ReedSolomon<galois_8::Field>;
 type ShardByShard<'a> = crate::ShardByShard<'a, galois_8::Field>;
+type ReedSolomonNS = crate::ReedSolomonNonSystematic<galois_8::Field>;
 
 macro_rules! make_random_shards {
     ($per_shard:expr, $size:expr) => {{
@@ -231,6 +233,76 @@ fn test_reconstruct_shards() {
         assert_eq!(master_copy[0], data_shards[0]);
         assert_eq!(master_copy[1], data_shards[1]);
         assert_eq!(None, shards[12]);
+    }
+
+    // Try to decode with 7 data and 1 parity shards
+    shards[0] = None;
+    shards[1] = None;
+    shards[9] = None;
+    shards[10] = None;
+    shards[11] = None;
+    shards[12] = None;
+    assert_eq!(
+        r.reconstruct(&mut shards).unwrap_err(),
+        Error::TooFewShardsPresent
+    );
+}
+
+
+#[test]
+fn test_reconstruct_shards_vandermonde() {
+    let per_shard = 100_0;
+
+    let r = ReedSolomonNS::vandermonde(8, 5).unwrap();
+
+    let mut shards = make_random_shards!(per_shard, 13);
+
+    r.encode(&mut shards).unwrap();
+
+    let master_copy = shards.clone();
+
+    let mut shards = shards_to_option_shards(&shards);
+
+    // Try to decode with all shards present
+    r.reconstruct(&mut shards).unwrap();
+    {
+        let shards = option_shards_to_shards(&shards);
+        //assert!(r.verify(&shards).unwrap());
+        assert_eq!(&shards, &master_copy);
+    }
+
+    // Try to decode with 10 shards
+    shards[0] = None;
+    shards[2] = None;
+    //shards[4] = None;
+    r.reconstruct(&mut shards).unwrap();
+    {
+        let shards = option_shards_to_shards(&shards);
+        //assert!(r.verify(&shards).unwrap());
+        assert_eq!(&shards, &master_copy);
+    }
+
+    // Try to decode the same shards again to try to
+    // trigger the usage of cached decode matrix
+    shards[0] = None;
+    shards[2] = None;
+    //shards[4] = None;
+    r.reconstruct(&mut shards).unwrap();
+    {
+        let shards = option_shards_to_shards(&shards);
+        //assert!(r.verify(&shards).unwrap());
+        assert_eq!(&shards, &master_copy);
+    }
+
+    // Try to deocde with 6 data and 4 parity shards
+    shards[0] = None;
+    shards[2] = None;
+    shards[12] = None;
+    r.reconstruct(&mut shards).unwrap();
+    {
+        let shards = option_shards_to_shards(&shards);
+        //assert!(r.verify(&shards).unwrap());
+        assert_eq!(&shards, &master_copy);
     }
 
     // Try to decode with 7 data and 1 parity shards
@@ -2617,4 +2689,21 @@ fn test_encode_single_error_handling() {
             r.encode_single(14, &mut slice_refs).unwrap_err()
         );
     }
+}
+
+#[test]
+fn test_non_systematic()
+{
+    let rs = ReedSolomonNS::vandermonde(3, 5).unwrap();
+
+    let mut shards = Vec::with_capacity(5);
+    shards.push(vec![1, 1, 1, 1]);
+    shards.push(vec![2, 2, 2, 2]);
+    shards.push(vec![3, 3, 3, 3]);
+    shards.push(vec![0;4]);
+    shards.push(vec![0;4]);
+
+    rs.encode(shards).unwrap();
+
+
 }

@@ -466,30 +466,6 @@ impl<F: Field> ReedSolomon<F> {
         })
     }
 
-    pub fn vandermonde(data_shards: usize, parity_shards: usize) -> Result<ReedSolomon<F>, Error> {
-        if data_shards == 0 {
-            return Err(Error::TooFewDataShards);
-        }
-        if parity_shards == 0 {
-            return Err(Error::TooFewParityShards);
-        }
-        if data_shards + parity_shards > F::ORDER {
-            return Err(Error::TooManyShards);
-        }
-
-        let total_shards = data_shards + parity_shards;
-
-        let matrix = Matrix::vandermonde(total_shards, data_shards );
-
-        Ok(ReedSolomon {
-            data_shard_count: data_shards,
-            parity_shard_count: parity_shards,
-            total_shard_count: total_shards,
-            matrix,
-            data_decode_matrix_cache: Mutex::new(LruCache::new(DATA_DECODE_MATRIX_CACHE_CAPACITY)),
-        })
-    }
-
     pub fn data_shard_count(&self) -> usize {
         self.data_shard_count
     }
@@ -944,5 +920,93 @@ impl<F: Field> ReedSolomon<F> {
 
             Ok(())
         }
+    }
+}
+
+
+#[derive(Debug)]
+pub struct ReedSolomonNonSystematic<F: Field> {
+    data_shard_count: usize,
+    parity_shard_count: usize,
+    total_shard_count: usize,
+    matrix: Matrix<F>,
+    data_decode_matrix_cache: Mutex<LruCache<Vec<usize>, Arc<Matrix<F>>>>,
+}
+
+impl<F: Field> Clone for ReedSolomonNonSystematic<F> {
+    fn clone(&self) -> ReedSolomonNonSystematic<F> {
+        ReedSolomonNonSystematic::vandermonde(self.data_shard_count, self.parity_shard_count)
+            .expect("basic checks already passed as precondition of existence of self")
+    }
+}
+
+impl<F: Field> PartialEq for ReedSolomonNonSystematic<F> {
+    fn eq(&self, rhs: &ReedSolomonNonSystematic<F>) -> bool {
+        self.data_shard_count == rhs.data_shard_count
+            && self.parity_shard_count == rhs.parity_shard_count
+    }
+}
+
+impl<F: Field> ReedSolomonNonSystematic<F> {
+    pub fn vandermonde(k: usize, n: usize) -> Result<ReedSolomonNonSystematic<F>, Error> {
+        if k == 0 {
+            return Err(Error::TooFewDataShards);
+        }
+        if n == 0 {
+            return Err(Error::TooFewParityShards);
+        }
+        if k + n > F::ORDER {
+            return Err(Error::TooManyShards);
+        }
+
+        let matrix = Matrix::vandermonde(n, k);
+
+        Ok(ReedSolomonNonSystematic {
+            data_shard_count: k,
+            parity_shard_count: n-k,
+            total_shard_count: n,
+            matrix,
+            data_decode_matrix_cache: Mutex::new(LruCache::new(DATA_DECODE_MATRIX_CACHE_CAPACITY)),
+        })
+    }
+
+    pub fn encode<T, U>(&self, mut shards: T) -> Result<(), Error>
+        where
+            T: AsRef<[U]> + AsMut<[U]>,
+            U: AsRef<[F::Elem]> + AsMut<[F::Elem]>,
+    {
+        let slices: &mut [U] = shards.as_mut();
+
+        check_piece_count!(all => self, slices);
+        check_slices!(multi => slices);
+
+        let mut inn = Vec::with_capacity(self.data_shard_count);
+        for i in 0..self.data_shard_count {
+            let shard = slices.get(i).unwrap();
+            let mut copy = Vec::with_capacity(shard.as_ref().len());
+            for i in shard.as_ref() {
+                copy.push(*i);
+            }
+            inn.push(copy);
+        }
+
+
+        for j in 0..self.total_shard_count  {
+            for i in 0..self.data_shard_count {
+                let e = self.matrix.get(j,i);
+                println!("in repair {}: source {} * {:?}",j,i,e);
+                if i == 0 {
+                    F::mul_slice(e, &inn[i].as_ref(), slices[j].as_mut());
+                } else {
+                    F::mul_slice_add(e, &inn[i].as_ref(), slices[j].as_mut());
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn reconstruct<T: ReconstructShard<F>>(&self, slices: &mut [T]) -> Result<(), Error> {
+        Ok(())
     }
 }

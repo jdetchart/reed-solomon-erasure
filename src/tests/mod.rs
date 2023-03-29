@@ -2703,7 +2703,11 @@ fn test_non_systematic()
     shards.push(vec![0;4]);
     shards.push(vec![0;4]);
 
-    rs.encode(shards).unwrap();
+    rs.encode(&mut shards).unwrap();
 
+    let mut shards = shards_to_option_shards(&shards);
+
+    shards[1] = None;
+    rs.reconstruct(&mut shards).unwrap();
 
 }

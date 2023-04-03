@@ -1,6 +1,5 @@
-use ark_bls12_381::{fq, fr};
-use ark_ff::fields::Field as OtherField;
-use ark_ff::{BigInt, BigInteger, PrimeField};
+use ark_bls12_381::fr;
+use ark_ff::{BigInteger, PrimeField};
 use std::ops::{Add, Div, Mul, MulAssign, Sub};
 
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]

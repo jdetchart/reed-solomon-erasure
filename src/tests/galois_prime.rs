@@ -1,12 +1,9 @@
-use super::{fill_random, option_shards_into_shards, shards_into_option_shards};
 use crate::galois_prime::{Field as PrimeF, ReedSolomon};
 use crate::matrix::Matrix;
-use crate::tests::{galois_prime, option_shards_to_shards, shards_to_option_shards};
+use crate::tests::{option_shards_to_shards, shards_to_option_shards};
 use crate::Field;
 use ark_bls12_381::{fr, Fr};
-use ark_ff::{BigInteger, PrimeField};
-use rand::Rng;
-use std::convert::TryFrom;
+use ark_ff::BigInteger;
 use std::ops::{Div, Mul};
 
 fn print_shards(shards: &Vec<Vec<Fr>>) {

@@ -1,7 +1,6 @@
 use std::ops::{Add, Div, Mul, MulAssign, Sub};
-use ark_bls12_381::{fq, fr};
-use ark_ff::fields::Field as OtherField;
-use ark_ff::{BigInt, BigInteger, PrimeField};
+use ark_bls12_381::fr;
+use ark_ff::{BigInteger, PrimeField};
 
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
 pub struct Field;
@@ -79,5 +78,6 @@ impl crate::Field for Field {
 }
 
 pub type ReedSolomon = crate::ReedSolomon<Field>;
+pub type ReedSolomonNS = crate::ReedSolomonNonSystematic<Field>;
 
 pub type ShardByShard<'a> = crate::ShardByShard<'a, Field>;

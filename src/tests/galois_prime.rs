@@ -1,13 +1,10 @@
-use std::convert::TryFrom;
 use std::ops::{Div, Mul};
 use ark_bls12_381::{Fr, fr};
-use ark_ff::{BigInteger, PrimeField};
-use rand::Rng;
+use ark_ff::BigInteger;
 use crate::Field;
-use crate::galois_prime::{Field as PrimeF, ReedSolomon};
+use crate::galois_prime::{Field as PrimeF, ReedSolomon, ReedSolomonNS};
 use crate::matrix::Matrix;
-use crate::tests::{galois_prime, option_shards_to_shards, shards_to_option_shards};
-use super::{fill_random, option_shards_into_shards, shards_into_option_shards};
+use crate::tests::{option_shards_to_shards, shards_to_option_shards};
 
 fn print_shards(shards: &Vec<Vec<Fr>>) {
     for shard in shards {
@@ -141,5 +138,35 @@ fn test() {
         print_shards(&shards);
         assert!(rs.verify(&shards).unwrap());
         assert_eq!(&shards, &master_copy);
+    }
+}
+
+#[test]
+fn test_non_systematic()
+{
+    let (k,n) = (3,5);
+    let rs = ReedSolomonNS::vandermonde(k, n).unwrap();
+
+    let mut shards = Vec::with_capacity(n);
+    for i in 0..n {
+        let mut s = Vec::with_capacity(1);
+        let e = Fr::from(i as u32 + 1);
+        s.push(e);
+        shards.push(s);
+    }
+
+    let master_copy = shards.clone();
+
+
+    rs.encode(&mut shards).unwrap();
+
+    let mut shards = shards_to_option_shards(&shards);
+
+    shards[1] = None;
+    shards[2] = None;
+    rs.reconstruct(&mut shards).unwrap();
+    let shards = option_shards_to_shards(&shards);
+    for i in 0..k {
+        assert_eq!(shards.get(i).unwrap(), master_copy.get(i).unwrap());
     }
 }

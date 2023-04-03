@@ -49,7 +49,6 @@ pub use crate::core::ReedSolomonNonSystematic;
 // TODO: Can be simplified once https://github.com/rust-lang/rfcs/issues/2505 is resolved
 #[cfg(not(feature = "std"))]
 use libm::log2f as log2;
-use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "std")]
 fn log2(n: f32) -> f32 {

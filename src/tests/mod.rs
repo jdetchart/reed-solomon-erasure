@@ -7,7 +7,6 @@ use alloc::vec::Vec;
 
 use super::{galois_8, Error, SBSError};
 use rand::{self, thread_rng, Rng};
-use crate::ReedSolomonNonSystematic;
 
 mod galois_16;
 mod galois_prime;
@@ -2694,20 +2693,28 @@ fn test_encode_single_error_handling() {
 #[test]
 fn test_non_systematic()
 {
-    let rs = ReedSolomonNS::vandermonde(3, 5).unwrap();
+    let (k,n) = (3,5);
+    let rs = ReedSolomonNS::vandermonde(k, n).unwrap();
 
-    let mut shards = Vec::with_capacity(5);
+    let mut shards = Vec::with_capacity(n);
     shards.push(vec![1, 1, 1, 1]);
     shards.push(vec![2, 2, 2, 2]);
     shards.push(vec![3, 3, 3, 3]);
     shards.push(vec![0;4]);
     shards.push(vec![0;4]);
 
+    let master_copy = shards.clone();
+
+
     rs.encode(&mut shards).unwrap();
 
     let mut shards = shards_to_option_shards(&shards);
 
     shards[1] = None;
+    shards[2] = None;
     rs.reconstruct(&mut shards).unwrap();
-
+    let shards = option_shards_to_shards(&shards);
+    for i in 0..k {
+        assert_eq!(shards.get(i).unwrap(), master_copy.get(i).unwrap());
+    }
 }

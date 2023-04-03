@@ -17,7 +17,6 @@ use lru::LruCache;
 use parking_lot::Mutex;
 #[cfg(not(feature = "std"))]
 use spin::Mutex;
-use crate::galois_8::sub;
 
 use super::Field;
 use super::ReconstructShard;
@@ -1013,7 +1012,7 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
 
         let data_shard_count = self.data_shard_count;
 
-        let mut sub_shards: SmallVec<[&[F::Elem]; 32]> = SmallVec::with_capacity(data_shard_count);
+        let mut sub_shards: SmallVec<[&mut [F::Elem]; 32]> = SmallVec::with_capacity(data_shard_count);
         let mut missing_data_slices: SmallVec<[&mut [F::Elem]; 32]> =
             SmallVec::with_capacity(self.parity_shard_count);
         let mut missing_parity_slices: SmallVec<[&mut [F::Elem]; 32]> =
@@ -1021,12 +1020,41 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
         let mut valid_indices: SmallVec<[usize; 32]> = SmallVec::with_capacity(data_shard_count);
         let mut invalid_indices: SmallVec<[usize; 32]> = SmallVec::with_capacity(data_shard_count);
 
+
+        // Quick check: are all of the shards present?  If so, there's
+        // nothing to do.
+        let mut number_present = 0;
+        let mut shard_len = None;
+        for shard in slices.iter_mut() {
+            if let Some(len) = shard.len() {
+                if len == 0 {
+                    return Err(Error::EmptyShard);
+                }
+                number_present += 1;
+                if let Some(old_len) = shard_len {
+                    if len != old_len {
+                        // mismatch between shards.
+                        return Err(Error::IncorrectShardSize);
+                    }
+                }
+                shard_len = Some(len);
+            }
+        }
+
+        let shard_len = shard_len.expect("at least one shard present; qed");
+
+        let mut inn = Vec::with_capacity(self.data_shard_count);
         for (id, shard) in slices.iter_mut().enumerate() {
-            let data = shard.get().ok_or(None::<T>);
+            let data = shard.get_or_initialize(shard_len).map_err(Some);
             match  data {
                 Ok(shard) => {
                     println!("{}",id);
-                    if sub_shards.len() < self.data_shard_count {
+                    if inn.len() < self.data_shard_count {
+                        let mut copy = Vec::with_capacity(shard_len);
+                        for i in shard.as_ref() {
+                            copy.push(*i);
+                        }
+                        inn.push(copy);
                         sub_shards.push(shard);
                         valid_indices.push(id);
                     }
@@ -1035,6 +1063,8 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
                     println!("errr");
                 }
                 Err(Some(x)) => {
+                    let shard = x?;
+                    sub_shards.push(shard);
                     println!("err");
                 }
             }
@@ -1051,24 +1081,29 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
         }
 
         let data_decode_matrix : Matrix<F> = sub_matrix.invert().unwrap();
+        let copy_mat = data_decode_matrix.invert().unwrap();
 
-        let mut inn = Vec::with_capacity(self.data_shard_count);
+
+
+
+        let sz = sub_shards.get(0).unwrap().len();
+        let mut result = Vec::new();
         for i in 0..self.data_shard_count {
-            let shard = sub_shards.get(i).unwrap();
-            let mut copy = Vec::with_capacity(shard.as_ref().len());
-            for i in shard.as_ref() {
-                copy.push(*i);
+            let mut vv= Vec::<F::Elem>::with_capacity(sz);
+            for e in 0..sz {
+                vv.push(F::Elem::default());
             }
-            inn.push(copy);
+            result.push(vv);
         }
 
         for j in 0..self.data_shard_count  {
             for i in 0..self.data_shard_count {
                 let e = data_decode_matrix.get(j,i);
+                let o = sub_shards.get_mut(j).unwrap().as_mut();//result.get_mut(j).unwrap().as_mut();
                 if i == 0 {
-                    F::mul_slice(e, &inn[i].as_ref(), &mut slices[j].as_mut());
+                    F::mul_slice(e, &inn[i].as_ref(), o);
                 } else {
-                    F::mul_slice_add(e, &inn[i].as_ref(), &mut slices[j].as_mut());
+                    F::mul_slice_add(e, &inn[i].as_ref(), o);
                 }
             }
         }

@@ -992,7 +992,6 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
         for j in 0..self.total_shard_count {
             for i in 0..self.data_shard_count {
                 let e = self.matrix.get(j, i);
-                println!("in repair {}: source {} * {:?}", j, i, e);
                 if i == 0 {
                     F::mul_slice(e, &inn[i].as_ref(), &mut slices[j].as_mut());
                 } else {
@@ -1015,12 +1014,14 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
 
         // Quick check: are all of the shards present?  If so, there's
         // nothing to do.
+        let mut number_present = 0;
         let mut shard_len = None;
         for shard in slices.iter_mut() {
             if let Some(len) = shard.len() {
                 if len == 0 {
                     return Err(Error::EmptyShard);
                 }
+                number_present += 1;
                 if let Some(old_len) = shard_len {
                     if len != old_len {
                         // mismatch between shards.
@@ -1029,6 +1030,11 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
                 }
                 shard_len = Some(len);
             }
+        }
+
+        // More complete sanity check
+        if number_present < data_shard_count {
+            return Err(Error::TooFewShardsPresent);
         }
 
         let shard_len = shard_len.expect("at least one shard present; qed");
@@ -1049,18 +1055,12 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
                         valid_indices.push(id);
                     }
                 }
-                Err(None) => {
-                    println!("errr");
-                }
+                Err(None) => {}
                 Err(Some(x)) => {
                     let shard = x?;
                     sub_shards.push(shard);
-                    println!("err");
                 }
             }
-        }
-        if sub_shards.len() == self.data_shard_count {
-            println!("ok for decoding");
         }
 
         let mut sub_matrix = Matrix::new(self.data_shard_count, self.data_shard_count);

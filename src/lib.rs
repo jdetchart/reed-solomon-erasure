@@ -127,7 +127,6 @@ pub trait Field: Sized {
     fn from_vec(input: Vec<u8>) -> Vec<Self::Elem>;
 }
 
-
 /// Something which might hold a shard.
 ///
 /// This trait is used in reconstruction, where some of the shards

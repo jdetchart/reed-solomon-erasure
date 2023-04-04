@@ -1013,24 +1013,17 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
         let data_shard_count = self.data_shard_count;
 
         let mut sub_shards: SmallVec<[&mut [F::Elem]; 32]> = SmallVec::with_capacity(data_shard_count);
-        let mut missing_data_slices: SmallVec<[&mut [F::Elem]; 32]> =
-            SmallVec::with_capacity(self.parity_shard_count);
-        let mut missing_parity_slices: SmallVec<[&mut [F::Elem]; 32]> =
-            SmallVec::with_capacity(self.parity_shard_count);
         let mut valid_indices: SmallVec<[usize; 32]> = SmallVec::with_capacity(data_shard_count);
-        let mut invalid_indices: SmallVec<[usize; 32]> = SmallVec::with_capacity(data_shard_count);
 
 
         // Quick check: are all of the shards present?  If so, there's
         // nothing to do.
-        let mut number_present = 0;
         let mut shard_len = None;
         for shard in slices.iter_mut() {
             if let Some(len) = shard.len() {
                 if len == 0 {
                     return Err(Error::EmptyShard);
                 }
-                number_present += 1;
                 if let Some(old_len) = shard_len {
                     if len != old_len {
                         // mismatch between shards.
@@ -1081,16 +1074,12 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
         }
 
         let data_decode_matrix : Matrix<F> = sub_matrix.invert().unwrap();
-        let copy_mat = data_decode_matrix.invert().unwrap();
-
-
-
 
         let sz = sub_shards.get(0).unwrap().len();
         let mut result = Vec::new();
-        for i in 0..self.data_shard_count {
+        for _i in 0..self.data_shard_count {
             let mut vv= Vec::<F::Elem>::with_capacity(sz);
-            for e in 0..sz {
+            for _e in 0..sz {
                 vv.push(F::Elem::default());
             }
             result.push(vv);

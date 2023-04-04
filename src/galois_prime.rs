@@ -1,8 +1,6 @@
 use ark_bls12_381::fr;
 use ark_ff::{BigInteger, PrimeField};
 use std::ops::{Add, Div, Mul, MulAssign, Sub};
-use ark_bls12_381::fr;
-use ark_ff::{BigInteger, PrimeField};
 
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
 pub struct Field;

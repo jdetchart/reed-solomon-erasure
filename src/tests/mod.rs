@@ -2652,5 +2652,8 @@ fn test_non_systematic() {
     shards[2] = None;
     shards[3] = None;
     shards[4] = None;
-    assert_eq!(Error::TooFewShardsPresent, rs.reconstruct(&mut shards).unwrap_err());
+    assert_eq!(
+        Error::TooFewShardsPresent,
+        rs.reconstruct(&mut shards).unwrap_err()
+    );
 }

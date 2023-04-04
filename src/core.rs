@@ -1055,15 +1055,13 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
                         valid_indices.push(id);
                     }
                 }
-                Err(None) => {
-                }
+                Err(None) => {}
                 Err(Some(x)) => {
                     let shard = x?;
                     sub_shards.push(shard);
                 }
             }
         }
-
 
         let mut sub_matrix = Matrix::new(self.data_shard_count, self.data_shard_count);
         for (sub_matrix_row, &valid_index) in valid_indices.iter().enumerate() {

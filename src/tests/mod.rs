@@ -2621,20 +2621,18 @@ fn test_encode_single_error_handling() {
 }
 
 #[test]
-fn test_non_systematic()
-{
-    let (k,n) = (3,5);
+fn test_non_systematic() {
+    let (k, n) = (3, 5);
     let rs = ReedSolomonNS::vandermonde(k, n).unwrap();
 
     let mut shards = Vec::with_capacity(n);
     shards.push(vec![1, 1, 1, 1]);
     shards.push(vec![2, 2, 2, 2]);
     shards.push(vec![3, 3, 3, 3]);
-    shards.push(vec![0;4]);
-    shards.push(vec![0;4]);
+    shards.push(vec![0; 4]);
+    shards.push(vec![0; 4]);
 
     let master_copy = shards.clone();
-
 
     rs.encode(&mut shards).unwrap();
 

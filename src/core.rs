@@ -923,7 +923,6 @@ impl<F: Field> ReedSolomon<F> {
     }
 }
 
-
 #[derive(Debug)]
 pub struct ReedSolomonNonSystematic<F: Field> {
     data_shard_count: usize,
@@ -963,7 +962,7 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
 
         Ok(ReedSolomonNonSystematic {
             data_shard_count: k,
-            parity_shard_count: n-k,
+            parity_shard_count: n - k,
             total_shard_count: n,
             matrix,
             data_decode_matrix_cache: Mutex::new(LruCache::new(DATA_DECODE_MATRIX_CACHE_CAPACITY)),
@@ -971,9 +970,9 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
     }
 
     pub fn encode<T, U>(&self, mut shards: T) -> Result<(), Error>
-        where
-            T: AsRef<[U]> + AsMut<[U]>,
-            U: AsRef<[F::Elem]> + AsMut<[F::Elem]>,
+    where
+        T: AsRef<[U]> + AsMut<[U]>,
+        U: AsRef<[F::Elem]> + AsMut<[F::Elem]>,
     {
         let slices: &mut [U] = shards.as_mut();
 
@@ -990,11 +989,10 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
             inn.push(copy);
         }
 
-
-        for j in 0..self.total_shard_count  {
+        for j in 0..self.total_shard_count {
             for i in 0..self.data_shard_count {
-                let e = self.matrix.get(j,i);
-                println!("in repair {}: source {} * {:?}",j,i,e);
+                let e = self.matrix.get(j, i);
+                println!("in repair {}: source {} * {:?}", j, i, e);
                 if i == 0 {
                     F::mul_slice(e, &inn[i].as_ref(), &mut slices[j].as_mut());
                 } else {
@@ -1002,7 +1000,6 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
                 }
             }
         }
-
 
         Ok(())
     }
@@ -1012,9 +1009,9 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
 
         let data_shard_count = self.data_shard_count;
 
-        let mut sub_shards: SmallVec<[&mut [F::Elem]; 32]> = SmallVec::with_capacity(data_shard_count);
+        let mut sub_shards: SmallVec<[&mut [F::Elem]; 32]> =
+            SmallVec::with_capacity(data_shard_count);
         let mut valid_indices: SmallVec<[usize; 32]> = SmallVec::with_capacity(data_shard_count);
-
 
         // Quick check: are all of the shards present?  If so, there's
         // nothing to do.
@@ -1039,9 +1036,9 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
         let mut inn = Vec::with_capacity(self.data_shard_count);
         for (id, shard) in slices.iter_mut().enumerate() {
             let data = shard.get_or_initialize(shard_len).map_err(Some);
-            match  data {
+            match data {
                 Ok(shard) => {
-                    println!("{}",id);
+                    println!("{}", id);
                     if inn.len() < self.data_shard_count {
                         let mut copy = Vec::with_capacity(shard_len);
                         for i in shard.as_ref() {
@@ -1073,22 +1070,22 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
             }
         }
 
-        let data_decode_matrix : Matrix<F> = sub_matrix.invert().unwrap();
+        let data_decode_matrix: Matrix<F> = sub_matrix.invert().unwrap();
 
         let sz = sub_shards.get(0).unwrap().len();
         let mut result = Vec::new();
         for _i in 0..self.data_shard_count {
-            let mut vv= Vec::<F::Elem>::with_capacity(sz);
+            let mut vv = Vec::<F::Elem>::with_capacity(sz);
             for _e in 0..sz {
                 vv.push(F::Elem::default());
             }
             result.push(vv);
         }
 
-        for j in 0..self.data_shard_count  {
+        for j in 0..self.data_shard_count {
             for i in 0..self.data_shard_count {
-                let e = data_decode_matrix.get(j,i);
-                let o = sub_shards.get_mut(j).unwrap().as_mut();//result.get_mut(j).unwrap().as_mut();
+                let e = data_decode_matrix.get(j, i);
+                let o = sub_shards.get_mut(j).unwrap().as_mut(); //result.get_mut(j).unwrap().as_mut();
                 if i == 0 {
                     F::mul_slice(e, &inn[i].as_ref(), o);
                 } else {

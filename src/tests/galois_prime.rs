@@ -1,10 +1,10 @@
-use std::ops::{Div, Mul};
-use ark_bls12_381::{Fr, fr};
-use ark_ff::BigInteger;
-use crate::Field;
 use crate::galois_prime::{Field as PrimeF, ReedSolomon, ReedSolomonNS};
 use crate::matrix::Matrix;
 use crate::tests::{option_shards_to_shards, shards_to_option_shards};
+use crate::Field;
+use ark_bls12_381::{fr, Fr};
+use ark_ff::BigInteger;
+use std::ops::{Div, Mul};
 
 fn print_shards(shards: &Vec<Vec<Fr>>) {
     for shard in shards {
@@ -142,9 +142,8 @@ fn test() {
 }
 
 #[test]
-fn test_non_systematic()
-{
-    let (k,n) = (3,5);
+fn test_non_systematic() {
+    let (k, n) = (3, 5);
     let rs = ReedSolomonNS::vandermonde(k, n).unwrap();
 
     let mut shards = Vec::with_capacity(n);
@@ -156,7 +155,6 @@ fn test_non_systematic()
     }
 
     let master_copy = shards.clone();
-
 
     rs.encode(&mut shards).unwrap();
 

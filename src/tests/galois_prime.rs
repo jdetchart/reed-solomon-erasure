@@ -188,6 +188,9 @@ fn test_convert() {
     let elts = crate::galois_prime::Field::from_vec(v.clone());
     assert_eq!(elts,s);
 
+    let vv = crate::galois_prime::Field::slice_to_vec(&elts);
+    assert_eq!(vv,v);
+
     let e = Fr::from(0);
     let f = Fr::zero();
     assert_eq!(e,f);
@@ -270,6 +273,7 @@ fn test_kzg_interpret() {
     let d = PrimeF::from_vec(data.clone());
     let mut shards = Vec::with_capacity(n);
     for chunk in d.chunks_exact(1) {
+        println!(" input {}",chunk[0]);
         shards.push(chunk.to_vec());
     }
     for _ in 0..n - k {
@@ -281,6 +285,7 @@ fn test_kzg_interpret() {
 
     for (i,s) in shards.iter().enumerate() {
         let v1 = s.get(0).unwrap();
+        println!("{}",s.get(0).unwrap());
         let v2 = Fr::from_str(result[i]).unwrap();
         assert!(v1.eq(&v2));
     }

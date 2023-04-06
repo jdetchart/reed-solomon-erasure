@@ -59,7 +59,7 @@ impl crate::Field for Field {
             .flat_map(|&u| {
                 //let nb_bytes = (u.into_bigint().num_bits()+7)/8;
                 let mut v = u.into_bigint().to_bytes_le();
-                v.truncate((fr::Fr::MODULUS_BIT_SIZE as usize) / 8 as usize);
+                //v.truncate((fr::Fr::MODULUS_BIT_SIZE as usize) / 8 as usize);
                 v
             })
             .collect()
@@ -68,7 +68,7 @@ impl crate::Field for Field {
     fn from_vec(input: Vec<u8>) -> Vec<fr::Fr> {
         let mut output = Vec::new();
 
-        let chunks = input.chunks((fr::Fr::MODULUS_BIT_SIZE as usize) / 8);
+        let chunks = input.chunks(((fr::Fr::MODULUS_BIT_SIZE+7) as usize) / 8);
         for chunk in chunks {
             //output.push(fr::Fr::from_random_bytes(chunk).unwrap());
             output.push(fr::Fr::from_le_bytes_mod_order(chunk));

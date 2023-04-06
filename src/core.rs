@@ -3,6 +3,7 @@ extern crate alloc;
 use alloc::sync::Arc;
 use alloc::vec;
 use alloc::vec::Vec;
+use ark_bls12_381::Fr;
 
 use smallvec::SmallVec;
 
@@ -992,6 +993,7 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
         for j in 0..self.total_shard_count {
             for i in 0..self.data_shard_count {
                 let e = self.matrix.get(j, i);
+                println!("{},{}:{:?}",j,i,e);
                 if i == 0 {
                     F::mul_slice(e, &inn[i].as_ref(), &mut slices[j].as_mut());
                 } else {

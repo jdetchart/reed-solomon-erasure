@@ -1044,7 +1044,6 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
             let data = shard.get_or_initialize(shard_len).map_err(Some);
             match data {
                 Ok(shard) => {
-                    println!("{}", id);
                     if inn.len() < self.data_shard_count {
                         let mut copy = Vec::with_capacity(shard_len);
                         for i in shard.as_ref() {

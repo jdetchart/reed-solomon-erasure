@@ -54,11 +54,11 @@ impl crate::Field for Field {
         [(n >> 8) as u8, n as u8]
     }
 
-    fn slice_to_vec(input: &[[u8; 2]]) -> Vec<u8> {
+    fn serialize(input: &[[u8; 2]]) -> Vec<u8> {
         input.iter().flatten().cloned().collect()
     }
 
-    fn from_vec(input: Vec<u8>) -> Vec<[u8; 2]> {
+    fn deserialize(input: Vec<u8>) -> Vec<[u8; 2]> {
         input
             .chunks(2)
             .map(|chunk| {
@@ -69,6 +69,14 @@ impl crate::Field for Field {
                 arr
             })
             .collect()
+    }
+
+    fn from_data(input: Vec<u8>) -> Vec<[u8; 2]> {
+        Self::deserialize(input)
+    }
+
+    fn into_data(input: &[Self::Elem]) -> Vec<u8> {
+        Self::serialize(input)
     }
 }
 

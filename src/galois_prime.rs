@@ -69,7 +69,7 @@ impl crate::Field for Field {
     fn deserialize(input: Vec<u8>) -> Vec<Self::Elem> {
         let mut output = Vec::new();
 
-        let chunks = input.chunks(((fr::Fr::MODULUS_BIT_SIZE+7) as usize) / 8);
+        let chunks = input.chunks(((fr::Fr::MODULUS_BIT_SIZE + 7) as usize) / 8);
         for chunk in chunks {
             //output.push(fr::Fr::from_random_bytes(chunk).unwrap());
             output.push(fr::Fr::from_le_bytes_mod_order(chunk));

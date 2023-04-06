@@ -1,13 +1,13 @@
 use crate::galois_prime::{Field as PrimeF, ReedSolomon, ReedSolomonNS};
 use crate::matrix::Matrix;
 use crate::tests::{option_shards_to_shards, shards_to_option_shards};
+use crate::Field;
 use ark_bls12_381::{fr, Fr};
 use ark_ff::{BigInteger, One, PrimeField, Zero};
+use rand::prelude::SliceRandom;
+use rand::{thread_rng, RngCore};
 use std::ops::{Div, Mul};
 use std::str::FromStr;
-use rand::{RngCore, thread_rng};
-use rand::prelude::SliceRandom;
-use crate::Field;
 
 fn print_shards(shards: &Vec<Vec<Fr>>) {
     for shard in shards {
@@ -186,18 +186,18 @@ fn test_convert() {
     let v = crate::galois_prime::Field::serialize(&s);
 
     let elts = crate::galois_prime::Field::deserialize(v.clone());
-    assert_eq!(elts,s);
+    assert_eq!(elts, s);
 
     let vv = crate::galois_prime::Field::serialize(&elts);
-    assert_eq!(vv,v);
+    assert_eq!(vv, v);
 
     let e = Fr::from(0);
     let f = Fr::zero();
-    assert_eq!(e,f);
+    assert_eq!(e, f);
 
     let e = Fr::from(1);
     let f = Fr::one();
-    assert_eq!(e,f);
+    assert_eq!(e, f);
 }
 
 #[test]
@@ -212,7 +212,7 @@ fn test_non_systematic_big() {
         let mut nums: Vec<u8> = (0..31).collect();
         nums.shuffle(&mut rng);
         let e = Fr::from_le_bytes_mod_order(&nums);
-        println!("{}",e);
+        println!("{}", e);
         s.push(e);
         shards.push(s);
     }
@@ -258,22 +258,22 @@ fn test_kzg_interpret() {
     ];
 
     let data = vec![
-        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255];
-
-
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 255,
+    ];
 
     let d = PrimeF::from_data(data.clone());
     let mut shards = Vec::with_capacity(n);
     for chunk in d.chunks_exact(1) {
-        println!(" input {}",chunk[0]);
+        println!(" input {}", chunk[0]);
         shards.push(chunk.to_vec());
     }
     for _ in 0..n - k {
@@ -283,9 +283,9 @@ fn test_kzg_interpret() {
 
     rs.encode(&mut shards).unwrap();
 
-    for (i,s) in shards.iter().enumerate() {
+    for (i, s) in shards.iter().enumerate() {
         let v1 = s.get(0).unwrap();
-        println!("{}",s.get(0).unwrap());
+        println!("{}", s.get(0).unwrap());
         let v2 = Fr::from_str(result[i]).unwrap();
         assert!(v1.eq(&v2));
     }

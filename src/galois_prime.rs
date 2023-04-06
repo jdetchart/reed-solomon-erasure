@@ -52,7 +52,47 @@ impl crate::Field for Field {
         fr::Fr::from(n as u64)
     }
 
-    fn slice_to_vec(input: &[Self::Elem]) -> Vec<u8> {
+    // write each Fr as 32B of data in little endian
+    fn serialize(input: &[Self::Elem]) -> Vec<u8> {
+        input
+            .iter()
+            //.flat_map(|&u| u.into_bigint().to_bytes_le())
+            .flat_map(|&u| {
+                //let nb_bytes = (u.into_bigint().num_bits()+7)/8;
+                let mut v = u.into_bigint().to_bytes_le();
+                v
+            })
+            .collect()
+    }
+
+    // read data 32B/32B as data is elements of Fr serialized
+    fn deserialize(input: Vec<u8>) -> Vec<Self::Elem> {
+        let mut output = Vec::new();
+
+        let chunks = input.chunks(((fr::Fr::MODULUS_BIT_SIZE+7) as usize) / 8);
+        for chunk in chunks {
+            //output.push(fr::Fr::from_random_bytes(chunk).unwrap());
+            output.push(fr::Fr::from_le_bytes_mod_order(chunk));
+        }
+
+        output
+    }
+
+    // read data 31B/31B
+    fn from_data(input: Vec<u8>) -> Vec<Self::Elem> {
+        let mut output = Vec::new();
+
+        let chunks = input.chunks((fr::Fr::MODULUS_BIT_SIZE as usize) / 8);
+        for chunk in chunks {
+            //output.push(fr::Fr::from_random_bytes(chunk).unwrap());
+            output.push(fr::Fr::from_le_bytes_mod_order(chunk));
+        }
+
+        output
+    }
+
+    // convert a slice of Fr generated as 31B of data each into elements of 31B ( should be the opposite of from_data)
+    fn into_data(input: &[Self::Elem]) -> Vec<u8> {
         input
             .iter()
             //.flat_map(|&u| u.into_bigint().to_bytes_le())
@@ -63,18 +103,6 @@ impl crate::Field for Field {
                 v
             })
             .collect()
-    }
-
-    fn from_vec(input: Vec<u8>) -> Vec<fr::Fr> {
-        let mut output = Vec::new();
-
-        let chunks = input.chunks((fr::Fr::MODULUS_BIT_SIZE as usize) / 8);
-        for chunk in chunks {
-            //output.push(fr::Fr::from_random_bytes(chunk).unwrap());
-            output.push(fr::Fr::from_le_bytes_mod_order(chunk));
-        }
-
-        output
     }
 }
 

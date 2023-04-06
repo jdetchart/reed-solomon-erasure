@@ -122,9 +122,13 @@ pub trait Field: Sized {
         }
     }
 
-    fn slice_to_vec(input: &[Self::Elem]) -> Vec<u8>;
+    fn serialize(input: &[Self::Elem]) -> Vec<u8>;
 
-    fn from_vec(input: Vec<u8>) -> Vec<Self::Elem>;
+    fn deserialize(input: Vec<u8>) -> Vec<Self::Elem>;
+
+    fn from_data(input: Vec<u8>) -> Vec<Self::Elem>;
+
+    fn into_data(input: &[Self::Elem]) -> Vec<u8>;
 }
 
 /// Something which might hold a shard.

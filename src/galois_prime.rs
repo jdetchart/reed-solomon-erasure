@@ -59,7 +59,7 @@ impl crate::Field for Field {
             //.flat_map(|&u| u.into_bigint().to_bytes_le())
             .flat_map(|&u| {
                 //let nb_bytes = (u.into_bigint().num_bits()+7)/8;
-                let mut v = u.into_bigint().to_bytes_le();
+                let v = u.into_bigint().to_bytes_le();
                 v
             })
             .collect()

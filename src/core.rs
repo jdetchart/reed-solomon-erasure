@@ -3,7 +3,6 @@ extern crate alloc;
 use alloc::sync::Arc;
 use alloc::vec;
 use alloc::vec::Vec;
-use ark_bls12_381::Fr;
 
 use smallvec::SmallVec;
 

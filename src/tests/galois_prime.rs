@@ -5,7 +5,6 @@ use crate::Field;
 use ark_bls12_381::{fr, Fr};
 use ark_ff::{BigInteger, One, PrimeField, Zero};
 use rand::prelude::SliceRandom;
-use rand::{thread_rng, RngCore};
 use std::ops::{Div, Mul};
 use std::str::FromStr;
 
@@ -207,7 +206,7 @@ fn test_non_systematic_big() {
 
     let mut rng = rand::thread_rng();
     let mut shards = Vec::with_capacity(n);
-    for i in 0..n {
+    for _ in 0..n {
         let mut s = Vec::with_capacity(1);
         let mut nums: Vec<u8> = (0..31).collect();
         nums.shuffle(&mut rng);

@@ -993,7 +993,6 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
         for j in 0..self.total_shard_count {
             for i in 0..self.data_shard_count {
                 let e = self.matrix.get(j, i);
-                println!("{},{}:{:?}",j,i,e);
                 if i == 0 {
                     F::mul_slice(e, &inn[i].as_ref(), &mut slices[j].as_mut());
                 } else {
@@ -1046,7 +1045,6 @@ impl<F: Field> ReedSolomonNonSystematic<F> {
             let data = shard.get_or_initialize(shard_len).map_err(Some);
             match data {
                 Ok(shard) => {
-                    println!("{}", id);
                     if inn.len() < self.data_shard_count {
                         let mut copy = Vec::with_capacity(shard_len);
                         for i in shard.as_ref() {

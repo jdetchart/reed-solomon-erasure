@@ -66,7 +66,7 @@ impl crate::Field for Field {
     }
 
     // read data 32B/32B as data is elements of Fr serialized
-    fn deserialize(input: Vec<u8>) -> Vec<Self::Elem> {
+    fn deserialize(input: &[u8]) -> Vec<Self::Elem> {
         let mut output = Vec::new();
 
         let chunks = input.chunks(((fr::Fr::MODULUS_BIT_SIZE + 7) as usize) / 8);
@@ -79,7 +79,7 @@ impl crate::Field for Field {
     }
 
     // read data 31B/31B
-    fn from_data(input: Vec<u8>) -> Vec<Self::Elem> {
+    fn from_data(input: &[u8]) -> Vec<Self::Elem> {
         let mut output = Vec::new();
 
         let chunks = input.chunks((fr::Fr::MODULUS_BIT_SIZE as usize) / 8);

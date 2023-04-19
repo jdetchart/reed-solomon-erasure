@@ -54,12 +54,12 @@ impl crate::Field for Field {
         input.to_vec()
     }
 
-    fn deserialize(input: Vec<u8>) -> Vec<u8> {
-        input
+    fn deserialize(input: &[u8]) -> Vec<u8> {
+        input.to_vec()
     }
 
-    fn from_data(input: Vec<u8>) -> Vec<Self::Elem> {
-        input
+    fn from_data(input: &[u8]) -> Vec<Self::Elem> {
+        input.to_vec()
     }
 
     fn into_data(input: &[Self::Elem]) -> Vec<u8> {

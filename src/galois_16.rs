@@ -58,7 +58,7 @@ impl crate::Field for Field {
         input.iter().flatten().cloned().collect()
     }
 
-    fn deserialize(input: Vec<u8>) -> Vec<[u8; 2]> {
+    fn deserialize(input: &[u8]) -> Vec<[u8; 2]> {
         input
             .chunks(2)
             .map(|chunk| {
@@ -71,7 +71,7 @@ impl crate::Field for Field {
             .collect()
     }
 
-    fn from_data(input: Vec<u8>) -> Vec<[u8; 2]> {
+    fn from_data(input: &[u8]) -> Vec<[u8; 2]> {
         Self::deserialize(input)
     }
 

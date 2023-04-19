@@ -29,6 +29,8 @@ fn display_matrix(mat: &Matrix<PrimeF>) {
 
 #[test]
 fn test_fr() {
+    let aaa = fr::Fr::MODULUS;
+    println!("{}", aaa);
     let e = fr::Fr::from(1234);
     let one = fr::Fr::from(1);
     let i = one.div(e);
@@ -67,7 +69,7 @@ fn test_vec_fr_small() {
     bytes.push(0);
     bytes.push(1);
     bytes.push(0);
-    let elems = crate::galois_prime::Field::from_data(bytes.clone());
+    let elems = crate::galois_prime::Field::from_data(bytes.as_slice());
     let mut bytes2 = crate::galois_prime::Field::into_data(elems.as_slice());
     bytes2.truncate(bytes.len());
     assert_eq!(bytes, bytes2);
@@ -79,7 +81,7 @@ fn test_vec_fr_big() {
 
     bytes.push(1);
 
-    let elems = crate::galois_prime::Field::from_data(bytes.clone());
+    let elems = crate::galois_prime::Field::from_data(bytes.as_slice());
     let mut bytes2 = crate::galois_prime::Field::into_data(elems.as_slice());
     bytes2.truncate(bytes.len());
     assert_eq!(bytes, bytes2);
@@ -88,7 +90,7 @@ fn test_vec_fr_big() {
     bytes.push(120);
     bytes.push(45);
 
-    let elems = crate::galois_prime::Field::from_data(bytes.clone());
+    let elems = crate::galois_prime::Field::from_data(bytes.as_slice());
     let mut bytes2 = crate::galois_prime::Field::into_data(elems.as_slice());
     bytes2.truncate(bytes.len());
     assert_eq!(bytes, bytes2);
@@ -96,7 +98,7 @@ fn test_vec_fr_big() {
     for i in 0..60 {
         bytes.push(i);
     }
-    let elems = crate::galois_prime::Field::from_data(bytes.clone());
+    let elems = crate::galois_prime::Field::from_data(bytes.as_slice());
     println!("{}", elems.len());
     let mut bytes2 = crate::galois_prime::Field::into_data(elems.as_slice());
     bytes2.truncate(bytes.len());
@@ -184,7 +186,7 @@ fn test_convert() {
     }
     let v = crate::galois_prime::Field::serialize(&s);
 
-    let elts = crate::galois_prime::Field::deserialize(v.clone());
+    let elts = crate::galois_prime::Field::deserialize(v.as_slice());
     assert_eq!(elts, s);
 
     let vv = crate::galois_prime::Field::serialize(&elts);
@@ -269,7 +271,7 @@ fn test_kzg_interpret() {
         0, 0, 0, 0, 0, 0, 0, 0, 255,
     ];
 
-    let d = PrimeF::from_data(data.clone());
+    let d = PrimeF::from_data(data.as_slice());
     let mut shards = Vec::with_capacity(n);
     for chunk in d.chunks_exact(1) {
         println!(" input {}", chunk[0]);

@@ -126,6 +126,9 @@ pub trait Field: Sized {
 
     fn deserialize(input: &[u8]) -> Vec<Self::Elem>;
 
+    /// convert bytes into field elements. It is automatically padded to the upper number.
+    /// if field size is 3 and bytes is 8, elems will have 3 elems of 3 bytes each
+    /// the last one is padded
     fn from_data(input: &[u8]) -> Vec<Self::Elem>;
 
     fn into_data(input: &[Self::Elem]) -> Vec<u8>;

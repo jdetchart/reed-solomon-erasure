@@ -9,6 +9,10 @@
 
 Rust implementation of Reed-Solomon erasure coding
 
+> **This is a fork of [rust-rse/reed-solomon-erasure](https://github.com/rust-rse/reed-solomon-erasure)**,
+> extended with a **BLS12-381 scalar field (`Fr`) backend** (`galois_prime`) for use in data availability
+> and KZG polynomial commitment schemes. All original backends and features are preserved.
+
 WASM builds are also available, see section **WASM usage** below for details
 
 This is a port of [BackBlaze's Java implementation](https://github.com/Backblaze/JavaReedSolomon), [Klaus Post's Go implementation](https://github.com/klauspost/reedsolomon), and [Nicolas Trangez's Haskell implementation](https://github.com/NicolasT/reedsolomon).
@@ -17,7 +21,43 @@ Version `1.X.X` copies BackBlaze's implementation, and is less performant as the
 
 Version `>= 2.0.0` copies Klaus Post's implementation. The SIMD C code is copied from Nicolas Trangez's implementation with minor modifications.
 
+Version `>= 7.0.0` adds the BLS12-381 scalar field (`galois_prime`) backend (this fork).
+
 See [Notes](#notes) and [License](#license) section for details.
+
+---
+ 
+## Fork additions (v7+)
+ 
+### BLS12-381 scalar field backend (`galois_prime`)
+ 
+In addition to the original `galois_8` and `galois_16` backends, this fork introduces a
+`galois_prime` backend that performs Reed-Solomon erasure coding over the **scalar field of the
+BLS12-381 elliptic curve** (`ark_bls12_381::fr::Fr`), via
+[`ark-bls12-381`](https://github.com/arkworks-rs/curves) and
+[`ark-ff`](https://github.com/arkworks-rs/algebra).
+ 
+This enables two use cases that the original byte-oriented backends cannot address:
+ 
+**Data Availability (DA)** — erasure-encode field elements directly, as required by DA layers
+that commit to data using elliptic curve operations. Shards are native `Fr` elements, making them
+directly compatible with commitment schemes without any re-encoding step.
+ 
+**KZG polynomial commitments** — encode a polynomial's evaluations as shards, recover missing
+evaluations from a subset, and feed them directly into KZG provers/verifiers without converting
+between field representations.
+ 
+#### Data packing
+ 
+The backend exposes two ways to move between raw bytes and field elements:
+ 
+- **`serialize` / `deserialize`** — each `Fr` element is represented as **32 bytes** (little-endian). Use this when working with field elements directly.
+- **`from_data` / `into_data`** — each `Fr` element carries **31 bytes** of payload, staying safely below the modulus. Use this when encoding arbitrary byte data into field elements.
+ 
+> **Note:** `ORDER` is currently set to `usize::MAX` as a placeholder — the true field order of
+> BLS12-381 Fr is a 255-bit prime and does not fit in a `usize`. This does not affect correctness
+> for normal encode/reconstruct operations but is a known limitation to be aware of.
+---
 
 ## WASM usage
 
@@ -86,6 +126,14 @@ fn main () {
 }
 ```
 
+## Backends
+ 
+| Backend | Module | Field | Use case |
+|---|---|---|---|
+| GF(2⁸) | `galois_8` | Galois field 2⁸ | General erasure coding, storage |
+| GF(2¹⁶) | `galois_16` | Galois field 2¹⁶ | General erasure coding, higher redundancy |
+| BLS12-381 Fr | `galois_prime` | BLS12-381 scalar field (`Fr`) | Data availability, KZG commitments |
+
 ## Benchmark it yourself
 You can test performance under different configurations quickly (e.g. data parity shards ratio, parallel parameters)
 with standard `cargo bench` command.
@@ -115,6 +163,12 @@ You can run benchmarks via `cargo bench`. To enable simd acceleration during ben
 Contributions are welcome. Note that by submitting contributions, you agree to license your work under the same license used by this project as stated in the LICENSE file.
 
 ## Credits
+
+#### BLS12-381 scalar field backend (`galois_prime`)
+ 
+Added by [@jdetchart](https://github.com/jdetchart) — Reed-Solomon erasure coding over the BLS12-381
+scalar field (`ark_bls12_381::fr::Fr`), for data availability and KZG polynomial commitment use cases.
+
 #### Library overhaul and Galois 2^16 backend
 Many thanks to the following people for overhaul of the library and introduction of Galois 2^16 backend
 
@@ -155,6 +209,9 @@ Simply search for "AUDIT" to see the dev notes that are aimed at facilitating co
 The `1.X.X` implementation mostly copies [BackBlaze's Java implementation](https://github.com/Backblaze/JavaReedSolomon).
 
 `2.0.0` onward mostly copies [Klaus Post's Go implementation](https://github.com/klauspost/reedsolomon), and copies C files from [Nicolas Trangez's Haskell implementation](https://github.com/NicolasT/reedsolomon).
+
+`7.0.0` onward adds the `galois_prime` backend — Reed-Solomon over the BLS12-381 scalar field
+(`ark_bls12_381::fr::Fr`) — using the [Arkworks](https://github.com/arkworks-rs) algebra libraries.
 
 The test suite for all versions copies [Klaus Post's Go implementation](https://github.com/klauspost/reedsolomon) as basis.
 
